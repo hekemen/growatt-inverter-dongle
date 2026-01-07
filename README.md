@@ -6,7 +6,7 @@
 - nodemcu (or any other esp8266 chip or esp32)
 - CH340G usb dongle (cheap one from aliexpress)
 
-![image](/inverter.png)
+![image](/inverter.jpeg)
 
 ### Write firmware
 
