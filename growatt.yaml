@@ -1,0 +1,211 @@
+substitutions:
+  device_description: Growatt Inverter
+  friendly_name:  Growatt Inverter
+  name: Growatt
+  
+esphome:
+  name: growatt
+
+esp8266:
+  board: nodemcuv2
+
+# Enable logging
+logger:
+  baud_rate: 0
+# Enable Home Assistant API
+api:
+
+ota:
+  platform: esphome
+  password: test1234
+
+wifi:
+  ssid: <YOUR_SSID>
+  password: <YOUR_PASSWORD>
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "test"
+    password: "test1234"
+
+captive_portal:
+
+time:
+  - platform: homeassistant   
+    id: homeassistant_time
+
+output:
+# Blue Led
+  - id: light_bl
+    platform: gpio
+    pin: 
+      number: D4
+# Red Led
+  - id: light_rd
+    platform: gpio
+    pin: 
+      number: D0
+
+mqtt :
+    broker :  <YOUR_MQTT_BROKER_IP>
+    username :  ""
+    password :  ""
+    birth_message :
+        topic :  sensor/${friendly_name}/status
+        payload :  online
+    will_message :
+        topic :  sensor/${friendly_name}/status
+        payload :  offline
+
+uart:
+  id: mod_bus
+  tx_pin: 
+      number: D10
+  rx_pin: 
+      number: D9
+  baud_rate: 115200
+  
+modbus:
+  id: modbus1
+  uart_id: mod_bus
+  
+modbus_controller:
+  - id: growatt
+# the Modbus device addr
+    address: 0x1
+    modbus_id: modbus1
+    setup_priority: -10
+    update_interval: 2s  
+
+
+sensor:
+  - platform: modbus_controller
+    name: "${friendly_name} DcPower"
+    address: 5
+    register_type: "read"
+    unit_of_measurement: W
+    device_class: power
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+        
+  - platform: modbus_controller
+    name: "${friendly_name} DcVoltage"
+    address: 3
+    register_type: "read"
+    unit_of_measurement: V
+    device_class: voltage
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "${friendly_name} DcInputCurrent"
+    address: 4
+    register_type: "read"
+    unit_of_measurement: A
+    device_class: current
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "${friendly_name} AcFrequency"
+    address: 37
+    register_type: "read"
+    unit_of_measurement: Hz
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.01
+  
+  - platform: modbus_controller
+    name: "${friendly_name} AcVoltage"
+    address: 38
+    register_type: "read"
+    unit_of_measurement: V
+    device_class: voltage
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+  
+  - platform: modbus_controller
+    name: "${friendly_name} AcOutputCurrent"
+    address: 39
+    register_type: "read"
+    unit_of_measurement: A
+    device_class: current
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "${friendly_name} AcPower"
+    address: 40
+    register_type: "read"
+    unit_of_measurement: W
+    device_class: power
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "${friendly_name} EnergyToday"
+    address: 53
+    register_type: "read"
+    unit_of_measurement: kWh
+    device_class: energy
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "${friendly_name} EnergyTotal"
+    address: 55
+    register_type: "read"
+    unit_of_measurement: kWh
+    state_class: total_increasing
+    device_class: energy
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+
+  - platform: modbus_controller
+    name: "${friendly_name} Temperature"
+    address: 93
+    register_type: "read"
+    unit_of_measurement: C
+    device_class: temperature
+    icon: mdi:thermometer
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+
+number:
+  - platform: modbus_controller
+    name: "${friendly_name} Max Output Power" 
+    id: power_control
+    address: 3
+    register_type: "holding"
+    value_type: U_WORD
+    min_value: 0
+    max_value: 100
+    step: 1
